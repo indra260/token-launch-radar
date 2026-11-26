@@ -78,6 +78,7 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.04em; text-transform: upperca
   border-radius: 4px; padding: 7px 9px; font: 13px var(--mono); text-transform: none; letter-spacing: 0;
 }
 .ctl input:focus, .ctl select:focus { outline: 1px solid var(--signal); border-color: var(--signal); }
+.legend { font-family: var(--mono); color: var(--muted); font-size: 12px; padding-bottom: 8px; white-space: nowrap; }
 .rowcount { margin-left: auto; font-family: var(--mono); color: var(--muted); font-size: 12px; padding-bottom: 8px; }
 
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 0; align-items: start; }

@@ -147,7 +147,7 @@ function renderDetail() {
     <h3>How this implied value is derived</h3>
     <table class="model-table">
       <tr><td>TVL</td><td>${fmtFull(r.tvl_usd)}</td></tr>
-      <tr><td>× category multiple${mult ? ` (${mult.sample} live peer${mult.sample === 1 ? '' : 's'})` : ' (no live peers in its category — the global median)'} </td><td>× ${r.multiple.toFixed(3)}</td></tr>
+      <tr><td>× category multiple${mult ? ` (${mult.sample} live peer${mult.sample === 1 ? '' : 's'}${mult.sample < 3 ? ' — a thin sample, so the shrink leans this multiple hard on the market median' : ''})` : ' (no live peers in its category — the global median)'} </td><td>× ${r.multiple.toFixed(3)}</td></tr>
       <tr><td>= base value</td><td>${fmtFull(Math.round(base))}</td></tr>
       <tr><td>× momentum (7d change)</td><td>× ${r.momentum_factor.toFixed(3)}</td></tr>
       <tr><td>× maturity (track record)</td><td>× ${r.maturity_factor.toFixed(3)}</td></tr>
@@ -176,7 +176,7 @@ function renderChrome() {
   ].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
   $('method').innerHTML = `
     <h3>How the radar ranks</h3>
-    <p>Implied value = TVL × the protocol's category multiple, adjusted for momentum, maturity and reach. A category's multiple is the median market-cap-to-TVL ratio of protocols in that category whose token already trades (global median ${R.meta.global_median_multiple.toFixed(3)}×), with each live ratio first capped at the 90th percentile of all live ratios so one outlier cannot price a category, then shrunk toward that global median by sample size. Momentum scales the seven-day TVL change, maturity scales the years tracked with no token recorded, and reach scales the chain footprint. Every figure comes from the sealed snapshot; no protocol is named in the model.</p>
+    <p>Implied value = TVL × the protocol's category multiple, adjusted for momentum, maturity and reach. A category's multiple is the median market-cap-to-TVL ratio of protocols in that category whose token already trades (global median ${R.meta.global_median_multiple.toFixed(3)}×), with each live ratio first capped at the 90th percentile of all live ratios so one outlier cannot price a category, then shrunk toward that global median by sample size with a weight of 24 — a category's own median outweighs the market's centre only once it rests on about two dozen live peers, so a category with one or two live peers is priced mostly off the market, and its detail view says so on the multiple's own row. Momentum scales the seven-day TVL change, maturity scales the years tracked with no token recorded, and reach scales the chain footprint. Every figure comes from the sealed snapshot; no protocol is named in the model.</p>
     <p>Set aside before ranking: the ${m.live_count} protocols whose token already trades, and pre-token products that are a claim on another asset — wrapped, staked and bridged products, versioned copies and exchanges' own books. "Records no token" is what the data supports: a protocol may still have a token its DefiLlama record does not carry, and no board row promises a launch, an airdrop or an allocation.</p>`;
 }
 
