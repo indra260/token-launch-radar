@@ -140,11 +140,17 @@ function median(values: number[]): number {
  *  one outlier (a single peer at 400x) cannot price a whole category; each
  *  category median is then shrunk toward the global median by its sample
  *  size, so a category with two observations borrows the market's centre.
- *  The shrink weight is 12: a category's own median outweighs the market's
- *  centre only once it rests on about a dozen live peers, because below
- *  that a category median is barely evidence — on this snapshot the three
- *  categories priced off a single capped-outlier peer would otherwise take
- *  the board's highest multiple between them. */
+ *  The shrink weight is 24: a category's own median outweighs the market's
+ *  centre only once it rests on about two dozen live peers, because below
+ *  that a category median is barely evidence — on this snapshot several
+ *  categories, Risk Curators among them, rest on a single live peer whose
+ *  ratio sits at the cap itself, and at the earlier weight of 12 that one
+ *  peer still lent them twice the market's centre. The head of the board
+ *  does not turn on the choice: the same three protocols lead at every
+ *  weight from 6 to 48 and every cap from the 85th to the 95th percentile,
+ *  with nine or ten of the top ten unchanged — the weight only sets how
+ *  far a thin category may stray from the centre, and 24 keeps a single
+ *  peer from straying far. */
 export function categoryMultiples(snapshot: Snapshot): { table: Multiple[]; globalMedian: number } {
   const raw: { category: string; ratio: number }[] = [];
   for (const p of snapshot.protocols) {
@@ -163,7 +169,7 @@ export function categoryMultiples(snapshot: Snapshot): { table: Multiple[]; glob
     byCategory.set(category, list);
   }
   const globalMedian = median(all);
-  const SHRINK = 12;
+  const SHRINK = 24;
   const table: Multiple[] = [];
   for (const [category, ratios] of byCategory) {
     const med = median(ratios);
