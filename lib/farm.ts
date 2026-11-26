@@ -6,7 +6,7 @@
 
 import type { ScoredRow } from './model.ts';
 
-type Group = 'trade' | 'lend' | 'vault' | 'rwa' | 'predict' | 'chain' | 'stake' | 'spend' | 'bridge' | 'cover' | 'use';
+type Group = 'trade' | 'lend' | 'cdp' | 'manage' | 'vault' | 'wrap' | 'rwa' | 'predict' | 'chain' | 'stake' | 'spend' | 'bridge' | 'cover' | 'use';
 
 function groupOf(category: string | null): Group {
   switch (category) {
@@ -16,11 +16,12 @@ function groupOf(category: string | null): Group {
     case 'Interest Rate Derivatives':
       return 'trade';
     case 'Lending':
-    case 'CDP':
-    case 'Collateral Markets':
-    case 'CDP Manager':
     case 'Uncollateralized Lending':
       return 'lend';
+    case 'CDP':
+      return 'cdp';
+    case 'CDP Manager':
+      return 'manage';
     case 'Yield':
     case 'Yield Aggregator':
     case 'Risk Curators':
@@ -32,7 +33,11 @@ function groupOf(category: string | null): Group {
     case 'Indexes':
     case 'Anchor BTC':
     case 'Decentralized BTC':
+    case 'Collateral Markets':
+    case 'CeDeFi':
       return 'vault';
+    case 'Stablecoin Wrapper':
+      return 'wrap';
     case 'RWA':
       return 'rwa';
     case 'Prediction Market':
@@ -57,7 +62,7 @@ function groupOf(category: string | null): Group {
 /** Chains where an ordinary transaction costs cents, not dollars — the
  *  plan's second chain is picked from the protocol's own list by this cost,
  *  never by list order alone. */
-const CHEAP_CHAINS = ['Base', 'Arbitrum', 'Optimism', 'zkSync Era', 'Linea', 'Scroll', 'Mantle', 'Blast', 'Mode', 'Solana', 'Binance'];
+const CHEAP_CHAINS = ['Base', 'Arbitrum', 'Optimism', 'zkSync Era', 'Linea', 'Scroll', 'Mantle', 'Blast', 'Mode', 'Solana', 'Binance', 'Polygon'];
 
 /** A plain-language gas budget for the chain, from the chain's name alone. */
 function gasNote(chain: string): string {
@@ -86,6 +91,12 @@ const CORE_ACTION: Record<Group, (name: string, chain: string) => string> = {
     `Make real trades on ${name} through its own interface on ${chain}: two to four swaps a week of $50–$250 each, varying pairs and sizes like a genuine user. Each swap costs the gas above plus spread, so a month of this runs roughly $15–$60 on a cheap chain and more on mainnet.`,
   lend: (name, chain) =>
     `Supply an asset you already hold (a stablecoin or ETH) into ${name} on ${chain} and leave it supplied: one deposit of the capital band above, then a small top-up or partial withdrawal every week or two so the position shows a history, not a single touch. Deposit and withdrawal gas is the main cost.`,
+  cdp: (name, chain) =>
+    `Deposit collateral you already hold (ETH or a major token — the stablecoin is what comes out, not what goes in) into ${name} on ${chain} and mint its stablecoin against it, keeping the position conservative: mint at most a third of what the collateral would allow, in the capital band above. A minted position only evidences anything while it stays open and healthy, so plan to hold it at least eight weeks and check its health weekly. Mint and repay gas is the main cost.`,
+  manage: (name, chain) =>
+    `Open a collateralised position through ${name} on ${chain}: deposit collateral in the capital band above on one of the markets it manages and draw a small loan against it — at most a third of what the collateral would allow — then let its own tools watch the position. Position management is the product, so the record that counts is a position opened, adjusted and kept healthy for at least eight weeks, not a deposit parked and forgotten. Position gas is the main cost.`,
+  wrap: (name, chain) =>
+    `Swap a stablecoin you already hold into ${name}'s wrapped version on ${chain} — the capital band above — and simply hold the wrapped balance: the wrapper is the product, and what it earns accrues to whoever holds it, so plan to hold at least one full quarter. Check what the wrapped token redeems for, and where, before you swap; the entry and exit spreads, not gas, are the main cost.`,
   vault: (name, chain) =>
     `Deposit into one of ${name}'s vaults or curated positions on ${chain} with the capital band above and hold the position: vault shares only evidence anything over time, so plan for at least eight weeks in, and rebalance between its vaults at most once a month. Entry and exit gas is the main cost.`,
   rwa: (name, chain) =>
@@ -97,7 +108,7 @@ const CORE_ACTION: Record<Group, (name: string, chain: string) => string> = {
   stake: (name, chain) =>
     `Stake the underlying asset through ${name} on ${chain} with the capital band above and hold the stake: a staking position only evidences anything over time, so plan for at least eight weeks in, and claim or compound rewards at most once a month. The real cost is the lockup — commit only money you can leave untouched for the whole plan.`,
   spend: (name, chain) =>
-    `Use ${name} for payments you would make anyway, routed through its app or card: ordinary purchases and transfers adding up to the capital band above across the month, a few a week, in normal amounts. Payment products count real-world usage and retention, not deposits parked for a week, so the cost is little more than the fees you would have paid elsewhere.`,
+    `Use ${name} for payments you would make anyway, through a wallet or app that runs on it: ordinary purchases and transfers adding up to the capital band above across the month, a few a week, in normal amounts. Payment rails count real-world usage and retention, not deposits parked for a week, so the cost is little more than the fees you would have paid elsewhere.`,
   bridge: (name, chain) =>
     `Bridge real funds through ${name}: move the capital band above from ${chain} to one of the other chains it serves, then use the funds there for a week before bridging anything back. Two or three crossings a month, in ordinary amounts, each paying the gas above plus any bridge fee (usually 0.05–0.3% of the amount — check it before you confirm).`,
   cover: (name, chain) =>
@@ -108,9 +119,15 @@ const CORE_ACTION: Record<Group, (name: string, chain: string) => string> = {
 
 const SECOND_ACTION: Record<Group, (name: string) => string> = {
   trade: (name) =>
-    `From week three, add one limit order, one larger trade or one liquidity position on ${name} each week alongside the swaps, so the account shows more than one kind of activity. Keep every transaction: if a snapshot is ever taken, a varied six-to-ten-week record is what it will see.`,
+    `From week three, add one limit order where its interface offers one, one larger trade or one liquidity position on ${name} each week alongside the swaps, so the account shows more than one kind of activity. Keep every transaction: if a snapshot is ever taken, a varied six-to-ten-week record is what it will see.`,
   lend: (name) =>
     `From week three, open a small borrow against your supply on ${name} (under 40% of what you supplied) and repay it within a fortnight, once or twice over the plan. Borrow-and-repay history is the behaviour a lending protocol can least fake, and the interest on a small, short borrow costs a few dollars.`,
+  cdp: (name) =>
+    `From week three, work the position both ways on ${name}: mint a little more against the same collateral one week and repay a little another, two or three adjustments over the plan, so the record shows a borrower managing a position rather than a single mint. Keep the position's health boringly comfortable throughout — a liquidation would be the loudest line in its history.`,
+  manage: (name) =>
+    `From week three, adjust the position once through ${name} — add a little collateral, repay a little of the loan, or switch on a protection feature if it offers one — and repeat monthly. A managed position that is actually managed is the behaviour this product exists for, and the adjustments are the history its own records keep.`,
+  wrap: (name) =>
+    `From the second month, split the holding on ${name}: keep most of it wrapped and move a smaller part back into the underlying stablecoin for a few weeks, then wrap it again. One clean round trip proves the exit works before it matters — the redemption path is the whole risk in a wrapper, and having tested it is worth more than a second position.`,
   vault: (name) =>
     `From week three, split a second, smaller deposit across another of ${name}'s vaults or its position on a second chain if it has one, so the account is not riding on a single strategy. Two positions held eight weeks read as a user; one deposit made yesterday reads as a farmer.`,
   rwa: (name) =>

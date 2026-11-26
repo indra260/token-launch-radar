@@ -76,6 +76,7 @@ export interface Radar {
     watchlist_count: number;
     board_size: number;
     global_median_multiple: number;
+    ratio_cap_multiple: number;
   };
   multiples: Multiple[];
   comparables: Record<string, Comparable[]>;
@@ -151,7 +152,7 @@ function median(values: number[]): number {
  *  with nine or ten of the top ten unchanged — the weight only sets how
  *  far a thin category may stray from the centre, and 24 keeps a single
  *  peer from straying far. */
-export function categoryMultiples(snapshot: Snapshot): { table: Multiple[]; globalMedian: number } {
+export function categoryMultiples(snapshot: Snapshot): { table: Multiple[]; globalMedian: number; cap: number } {
   const raw: { category: string; ratio: number }[] = [];
   for (const p of snapshot.protocols) {
     if (recordsNoToken(p) || p.mcap_usd === null || p.mcap_usd <= 0 || p.tvl_usd <= 0) continue;
@@ -181,7 +182,7 @@ export function categoryMultiples(snapshot: Snapshot): { table: Multiple[]; glob
     });
   }
   table.sort((a, b) => (a.category < b.category ? -1 : 1));
-  return { table, globalMedian };
+  return { table, globalMedian, cap };
 }
 
 function multipleFor(table: Multiple[], globalMedian: number, category: string | null): number {
@@ -255,7 +256,7 @@ export function riskFlags(p: Protocol, snapshot: Snapshot, watchlist: ReadonlySe
  *  carried whole; the remaining places go to the highest implied values. */
 export function buildRadar(snapshot: Snapshot): Radar {
   const watchlist = new Set(snapshot.watchlist);
-  const { table, globalMedian } = categoryMultiples(snapshot);
+  const { table, globalMedian, cap } = categoryMultiples(snapshot);
   const candidates = snapshot.protocols.filter(isLaunchCandidate);
 
   const scored: ScoredRow[] = candidates.map((p) => {
@@ -301,7 +302,7 @@ export function buildRadar(snapshot: Snapshot): Radar {
       .filter((p) => (p.category ?? '(uncategorised)') === m.category && !recordsNoToken(p) && p.mcap_usd !== null && p.mcap_usd > 0 && p.tvl_usd > 0)
       .sort((a, b) => (b.mcap_usd ?? 0) - (a.mcap_usd ?? 0))
       .slice(0, 3)
-      .map((p) => ({ name: p.name, symbol: p.symbol, mcap_usd: p.mcap_usd!, tvl_usd: p.tvl_usd, ratio: Math.round((p.mcap_usd! / p.tvl_usd) * 1000) / 1000 }));
+      .map((p) => ({ name: p.name, symbol: p.symbol, mcap_usd: p.mcap_usd!, tvl_usd: p.tvl_usd, ratio: Math.round((p.mcap_usd! / p.tvl_usd) * 100) / 100 }));
     if (peers.length > 0) comparables[m.category] = peers;
   }
 
@@ -317,6 +318,7 @@ export function buildRadar(snapshot: Snapshot): Radar {
       watchlist_count: snapshot.watchlist.length,
       board_size: rows.length,
       global_median_multiple: Math.round(globalMedian * 10000) / 10000,
+      ratio_cap_multiple: Math.round(cap * 10000) / 10000,
     },
     multiples: table,
     comparables,
