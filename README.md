@@ -26,7 +26,7 @@ Every figure comes from the snapshot; no protocol is named in the code.
 - **Implied value** = TVL × category multiple × momentum × maturity × reach.
   A category's multiple is the median market-cap-to-TVL ratio of its live,
   token-bearing peers, with each live ratio capped at the 90th percentile of
-  all live ratios (2.98× on this snapshot, so one 400× outlier cannot price
+  all live ratios (2.97× on this snapshot, so one 400× outlier cannot price
   a category) and the median shrunk toward the global median (0.214×) with
   a weight of 24 — a category's own median outweighs the market's centre
   only once it rests on about two dozen live peers, because below that a
@@ -50,7 +50,11 @@ Every figure comes from the snapshot; no protocol is named in the code.
 - **Farm plans** are generated per protocol from its category and the chains
   its TVL sits on, with a capital band scaled to its size, a gas budget for
   its main chain, a second chain picked by gas cost rather than list order
-  where it spans several, a weekly cadence and a duration. Each plan also carries a
+  where it spans several, a weekly cadence and a duration. The core action
+  follows what the product actually is — a CDP plan mints against collateral,
+  a wrapper plan holds the wrapped token, a collateral network's plan
+  deposits into its vaults — and no plan prescribes an action the product
+  does not offer, like borrowing where nothing can be borrowed. Each plan also carries a
   sentence drawn from the protocol's own record — its chain spread, its age
   or its seven-day move — and closes by citing the row's own rank and
   implied value next to the standing caveat that no token is promised.
@@ -90,7 +94,7 @@ program's own validation.
 - `lib/model.ts` — snapshot parsing, eligibility, multiples, the value
   model, risk flags.
 - `lib/farm.ts` — the farm-plan generator.
-- `dashboard/` — `index.html`, `app.css`, `app.js` (19.9 KB total, so the
+- `dashboard/` — `index.html`, `app.css`, `app.js` (20.8 KB total, so the
   dossier shows the source whole).
 - `screenshots/` — the board, a detail view (Gauntlet) and the
   watchlist-filtered view, real renders. The detail view is captured in a
