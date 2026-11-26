@@ -28,11 +28,18 @@ Every figure comes from the snapshot; no protocol is named in the code.
   token-bearing peers, with each live ratio capped at the 90th percentile of
   all live ratios (2.98× on this snapshot, so one 400× outlier cannot price
   a category) and the median shrunk toward the global median (0.214×) with
-  a weight of 12 — a category's own median outweighs the market's centre
-  only once it rests on about a dozen live peers, because below that a
+  a weight of 24 — a category's own median outweighs the market's centre
+  only once it rests on about two dozen live peers, because below that a
   category median is barely evidence. (On the first pass this entry priced
-  three categories — Risk Curators among them — off a single capped-outlier
-  peer each; the stronger shrink is the fix.) Momentum scales the seven-day
+  three categories off a single capped-outlier peer each, and even at a
+  weight of 12 a single live peer — Risk Curators has exactly one, whose
+  ratio sits at the cap itself — still lent its category twice the
+  market's centre; the stronger shrink is the fix. The head of the board
+  does not turn on the choice: the same three protocols lead at every
+  weight from 6 to 48 and every cap from the 85th to the 95th percentile,
+  with nine or ten of the top ten unchanged — the weight only sets how
+  far a thin category may stray from the centre.) Momentum scales the
+  seven-day
   TVL change, maturity the years tracked with no token recorded (an
   unreported listing date scores the 0.80 floor, never above a protocol
   with a verifiable short record), reach the chain footprint.
@@ -42,7 +49,8 @@ Every figure comes from the snapshot; no protocol is named in the code.
   carries no holder, audit or deployer data, so none is claimed.
 - **Farm plans** are generated per protocol from its category and the chains
   its TVL sits on, with a capital band scaled to its size, a gas budget for
-  its main chain, a weekly cadence and a duration. Each plan also carries a
+  its main chain, a second chain picked by gas cost rather than list order
+  where it spans several, a weekly cadence and a duration. Each plan also carries a
   sentence drawn from the protocol's own record — its chain spread, its age
   or its seven-day move — and closes by citing the row's own rank and
   implied value next to the standing caveat that no token is promised.
