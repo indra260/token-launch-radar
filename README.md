@@ -1,104 +1,88 @@
-[![make.fun · token-radar-01](https://make.fun/badge/token-radar-01.svg)](https://make.fun/bounty/token-radar-01?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
-[![rank](https://make.fun/badge/token-radar-01/indra260/token-launch-radar/rank.svg)](https://make.fun/bounty/token-radar-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
-[![reward](https://make.fun/badge/token-radar-01/indra260/token-launch-radar/reward.svg)](https://make.fun/bounty/token-radar-01?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
+[![make.fun](https://make.fun/badge/token-radar-01.svg)](https://make.fun/competitions/token-radar-01)
+[![rank](https://make.fun/badge/token-radar-01/indra260/token-launch-radar/rank.svg)](https://make.fun/competitions/token-radar-01)
+[![reward](https://make.fun/badge/token-radar-01/indra260/token-launch-radar/reward.svg)](https://make.fun/competitions/token-radar-01)
 
 # Token Launch Radar
 
-An entry for make.fun's **Build the best token launch radar** (token-radar-01).
+A ranked board of the protocols that still record no token, priced by what
+a launch would be worth — plus a concrete five-step farm plan for each one.
 
-The radar reads the competition's sealed DefiLlama snapshot (758 protocols,
-fetched 2026-11-14) and ranks the protocols that record no token yet by an
-**implied value**: what a launch would be worth if the protocol's record
-stayed exactly as it is. It does not predict whether or when a token is
-issued, and it says "records no token" throughout — the record is not proof
-that none exists.
+## The idea
 
-## The model
+Plenty of protocols run for years without a token. When one finally launches,
+the token usually prices off the same yardstick the market already applies
+to its peers: market cap per dollar of TVL. This radar applies that yardstick
+to every tokenless protocol in a frozen DefiLlama snapshot and ranks them by
+the implied value of a launch at peer prices.
 
-Every figure comes from the snapshot; no protocol is named in the code.
+## How a protocol is priced
 
-- **Eligibility.** A protocol is a launch candidate when DefiLlama records no
-  token for it and it is not a wrapped, staked or bridged product of a token
-  that already trades, a versioned copy, or an exchange's own book — the same
-  tests the snapshot's watchlist applies. 198 of the 342 tokenless protocols
-  qualify; the 416 already-tokenised protocols are set aside as the
-  comparables pool.
-- **Implied value** = TVL × category multiple × momentum × maturity × reach.
-  A category's multiple is the median market-cap-to-TVL ratio of its live,
-  token-bearing peers, with each live ratio capped at the 90th percentile of
-  all live ratios (2.97× on this snapshot, so one 400× outlier cannot price
-  a category) and the median shrunk toward the global median (0.214×) with
-  a weight of 24 — a category's own median outweighs the market's centre
-  only once it rests on about two dozen live peers, because below that a
-  category median is barely evidence. (On the first pass this entry priced
-  three categories off a single capped-outlier peer each, and even at a
-  weight of 12 a single live peer — Risk Curators has exactly one, whose
-  ratio sits at the cap itself — still lent its category twice the
-  market's centre; the stronger shrink is the fix. The head of the board
-  does not turn on the choice: the same three protocols lead at every
-  weight from 6 to 48 and every cap from the 85th to the 95th percentile,
-  with nine or ten of the top ten unchanged — the weight only sets how
-  far a thin category may stray from the centre.) Momentum scales the
-  seven-day
-  TVL change, maturity the years tracked with no token recorded (an
-  unreported listing date scores the 0.80 floor, never above a protocol
-  with a verifiable short record), reach the chain footprint.
-- **Risk flags** are read off the same fields — TVL falling or cooling,
-  unreported momentum or listing date, a track record under a year, a
-  single-chain footprint, size below the $50M watchlist floor. The snapshot
-  carries no holder, audit or deployer data, so none is claimed.
-- **Farm plans** are generated per protocol from its category and the chains
-  its TVL sits on, with a capital band scaled to its size, a gas budget for
-  its main chain, a second chain picked by gas cost rather than list order
-  where it spans several, a weekly cadence and a duration. The core action
-  follows what the product actually is — a CDP plan mints against collateral,
-  a wrapper plan holds the wrapped token, a collateral network's plan
-  deposits into its vaults — and no plan prescribes an action the product
-  does not offer, like borrowing where nothing can be borrowed. Each plan also carries a
-  sentence drawn from the protocol's own record — its chain spread, its age
-  or its seven-day move — and closes by citing the row's own rank and
-  implied value next to the standing caveat that no token is promised.
+1. **Live peers set the price.** For each category, take the tokened
+   protocols that have both a market cap and TVL, and look at their
+   market-cap-to-TVL ratios. The category multiple is the median of those
+   ratios, capped at the 90th percentile so one giant cannot set the price.
+2. **Thin categories are shrunk toward the middle.** The multiple used is
+   `(n · median + 24 · global median) / (n + 24)` — 24 phantom peers sitting
+   at the global median. A category with no live peers at all just gets the
+   global median.
+3. **Three small adjustments.** The raw value — TVL times the multiple — is
+   scaled by momentum (the seven-day TVL move, clamped), maturity (longer
+   tracked history scores higher, up to a cap) and reach (more chains, a
+   little more). The result is the implied value, and the board is sorted by
+   it, highest first.
 
-The board carries all 40 watchlist protocols plus the next 158 candidates by
-implied value: 198 rows, each with five farm steps.
+Every row also carries risk notes drawn from its own record — watchlist
+membership, a fast-falling or fast-growing TVL, a short or missing track
+record, a single-chain footprint, a TVL under the watchlist floor — and a
+farm plan written from the same record: which chain to start on, what the
+gas costs there, the core position for that kind of product, a second
+position in week three, the cadence to keep, and a monthly review against
+the numbers. Nothing here promises a token will ever launch.
 
 ## Run it
 
-Node 22.18+, standard library only:
+Requires Node.js 22.18 or later, standard library only.
 
-```
+```sh
 mkdir -p out
-MAKEFUN_OUTPUT_DIR=out node main.ts --input <path-to>/snapshot.json
+MAKEFUN_OUTPUT_DIR=out node main.ts --input <path to snapshot.json>
 ```
 
-Writes `board.json`, `data.js`, `dashboard/`, `screenshots/` and
-`dossier.json` (via the vendored `vendor/makefun-board.ts`, byte-unchanged
-from the kit) into the output directory. The program refuses to write a
-board that breaks the gate's rules, and two runs write identical bytes.
+With no flags it reads `/input/snapshot.json` and writes `/output`, which is
+how the grader runs it. The run writes:
 
-The dashboard is a static page — open `out/dashboard/index.html` with
-`out/data.js` beside it. It is sortable and filterable (search, category,
-chain, watchlist / risk flags), and every row opens a detail view with the
-model breakdown, the risk flags, the live peers in its category and its
-farm plan. Views can be pinned from the address bar (`?detail=<slug>`,
-`?flags=watchlist`, `?cat=<category>`, `?sort=tvl`), which is how the
-screenshots were taken (`tools/capture.mjs`, DevTools protocol).
+- `board.json` — the ranked board (198 rows for this snapshot)
+- `data.js` — the same board as a script for the dashboard
+- `dashboard/` — the static page (no network, no framework)
+- `screenshots/` — the board, a detail view, and a filtered view
+- `dossier.json` — the judge's summary, built with `vendor/makefun-board.ts`
 
-`tools/check-output.mjs <outDir> <snapshot.json> [outDir2]` replicates the
-gate's seven checks plus the two-runs-identical rule, independently of the
-program's own validation.
+## Screenshots
+
+The three screenshots are taken from the dashboard with `tools/capture.mjs`,
+which drives a headless Chromium over its DevTools protocol:
+
+```sh
+node tools/capture.mjs --dir <dir holding dashboard/ and data.js> --out screenshots/
+```
 
 ## Layout
 
-- `main.ts` — the entry program: build, self-check, write, copy, dossier.
-- `lib/model.ts` — snapshot parsing, eligibility, multiples, the value
-  model, risk flags.
-- `lib/farm.ts` — the farm-plan generator.
-- `dashboard/` — `index.html`, `app.css`, `app.js` (20.8 KB total, so the
-  dossier shows the source whole).
-- `screenshots/` — the board, a detail view (Gauntlet) and the
-  watchlist-filtered view, real renders. The detail view is captured in a
-  taller 1440×1080 frame with its panel scrolled to the end, so the farm
-  plan the judge grades is actually in the picture; the other two are
-  1440×900.
-- `vendor/makefun-board.ts` — the kit's dossier library, unchanged.
+- `main.ts` — entrypoint: reads the snapshot, writes the whole output
+- `lib/model.ts` — the valuation model, eligibility, and risk notes
+- `lib/farm.ts` — the five-step farm plans
+- `dashboard/` — `index.html`, `app.css`, `app.js`
+- `tools/capture.mjs` — the screenshot tool
+- `vendor/makefun-board.ts` — the make.fun dossier library, from the kit
+
+## Data
+
+The snapshot is DefiLlama's protocol list as fetched 2026-11-14
+(`https://api.llama.fi/protocols`), frozen for the competition: 758
+protocols, 342 of them tokenless, 40 on the house watchlist at a $50,000,000
+floor. The program reads whatever snapshot it is given; the numbers above
+describe this competition's input.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
