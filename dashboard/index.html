@@ -1,60 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Launch Radar — pre-token protocols ranked by implied value</title>
+<title>Token Launch Radar</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true"></div>
-    <div>
-      <h1>Token Launch Radar</h1>
-      <p class="tagline">Protocols that record no token yet, ranked by what a launch would be worth if their record stayed as it is.</p>
-    </div>
+<header class="top">
+  <div>
+    <h1>Token Launch Radar</h1>
+    <p class="sub">Tokenless protocols, ranked by what a launch would be worth — and how to farm each one.</p>
   </div>
-  <div class="snapshot-meta" id="snapshotMeta"></div>
+  <p class="meta" id="meta">Loading the board…</p>
 </header>
 
-<section class="stats" id="stats"></section>
-
 <section class="controls" aria-label="Board controls">
-  <label class="ctl grow">Search
-    <input id="q" type="search" placeholder="Protocol name or slug…" autocomplete="off">
+  <label>Search <input id="q" type="search" placeholder="Protocol or chain…" autocomplete="off"></label>
+  <label>Category
+    <select id="cat"><option value="">All categories</option></select>
   </label>
-  <label class="ctl">Category
-    <select id="cat"></select>
-  </label>
-  <label class="ctl">Chain
-    <select id="chain"></select>
-  </label>
-  <label class="ctl">Flags
+  <label>Flags
     <select id="flags">
-      <option value="all">All rows</option>
-      <option value="watchlist">Watchlist only</option>
-      <option value="risk">Has a risk flag</option>
-      <option value="high">Has a high-risk flag</option>
-      <option value="clean">No risk flags</option>
+      <option value="">All rows</option>
+      <option value="watchlist">House watchlist only</option>
+      <option value="good">Has a good flag</option>
+      <option value="high">Has a high flag</option>
+      <option value="watch">Has a watch flag</option>
     </select>
   </label>
-  <span class="legend" aria-label="Flag legend"><span class="dot-high">●</span> high risk <span class="dot-watch">●</span> watch <span class="dot-good">●</span> positive <span class="dot-info">●</span> info</span>
-  <span class="rowcount" id="rowCount"></span>
+  <label>Sort
+    <select id="sort">
+      <option value="implied">Implied value</option>
+      <option value="tvl">TVL</option>
+      <option value="age">Longest tracked</option>
+      <option value="change">7-day move</option>
+    </select>
+  </label>
+  <p class="count" id="count"></p>
 </section>
 
-<main class="layout">
-  <div class="board-wrap">
-    <table class="board" id="board">
-      <thead><tr id="headRow"></tr></thead>
-      <tbody id="bodyRows"></tbody>
-    </table>
-    <p class="empty" id="empty" hidden>No protocol matches those filters. Loosen one and the radar sweeps again.</p>
-  </div>
-  <aside class="detail" id="detail" aria-label="Protocol detail"></aside>
+<main>
+  <table id="board">
+    <thead>
+      <tr>
+        <th class="num">#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+        <th class="num">TVL</th><th class="num">7-day</th><th class="num">Age</th>
+        <th class="num">Multiple</th><th class="num">Implied value</th><th>Flags</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="empty" id="empty" hidden>No protocols match these filters.</p>
 </main>
 
-<footer class="method" id="method"></footer>
+<section class="detail" id="detail" hidden aria-label="Protocol detail"></section>
+
+<section class="method" aria-label="How the board is built">
+  <h2>How the ranking works</h2>
+  <p id="method-text">Each protocol with no token yet is priced off the live, tokened peers
+  in its own category: the median market-cap-to-TVL ratio of those peers, capped at the
+  90th percentile and shrunk toward the global median, times the protocol's TVL, times
+  small adjustments for its seven-day momentum, how long it has been tracked, and how
+  many chains its TVL spans. The farm plan under each protocol is written from its own
+  record — its chains, its size and its recent move — and nothing here promises a token
+  will ever launch.</p>
+  <p class="src" id="source-line"></p>
+</section>
 
 <script src="../data.js"></script>
 <script src="app.js"></script>
